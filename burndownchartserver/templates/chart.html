@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="utf-8" />
+   <title>Burndown Chart </title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+   <!-- import plugin script -->
+   <script src='static/Chart.min.js'></script>
+ 
+</head>
+<body>
+
+<div style="text-align:center;"><h1>Burndown Chart</h1></div>
+<!-- bar chart canvas element -->
+<canvas id="chart" width="50" height="20"></canvas>
+<script>
+var ctx = document.getElementById("chart").getContext("2d"); 
+var data = {
+    labels: [{% for item in workdays %}
+             "{{ item }}",  // javascript will calculate value 2016-11-18 if the " " is not added here.
+            {% endfor %}
+            ],
+    datasets: [
+        {
+            type: "line",
+             label: "ideal_line",
+            fill: false,
+            lineTension: 0.1,
+            borderDash: [15, 3],
+            borderDashOffset: 0.0,
+            backgroundColor: "rgba(255,255,255,0.5)",
+            borderColor: "rgba(255,0,0,0.5)",
+            borderCapStyle: 'butt',
+            borderJoinStyle: 'miter',
+            pointBorderColor: "rgba(255,0,0,0.5)",
+            pointBackgroundColor: "rgba(255,0,0,0.5)",
+            pointBorderWidth: 1,
+            pointRadius: 2,
+            pointHitRadius: 1,
+            data:[{% for item in ideal_line %}
+                  {{ item }},
+                  {% endfor %}
+            ],
+            spanGaps: true,
+        },
+        {
+            type: "line",
+            label: "actual_line",
+            fill: false,
+            lineTension: 0.2,
+            backgroundColor: "rgba(9, 139, 255, 0.9)", // including icon background color
+            borderColor: "rgba(9, 139, 255, 0.9)",
+            borderCapStyle: 'butt',
+            borderJoinStyle: 'miter',
+            borderWidth: 5,
+            pointBorderColor: "rgba(9, 139, 255, 0.9)",  // point color
+            pointBackgroundColor: "rgba(9, 139, 255, 0.9)",
+            pointBorderWidth: 5,  
+            pointRadius: 3,
+            pointHitRadius: 1,
+            data: [{% for item in remaining %}
+                   {{ item }},
+                   {% endfor %}
+            ],
+            spanGaps: false,
+        }
+]
+};
+var options = {
+    animation: {
+        onComplete: function () {
+            var ctx = this.chart.ctx;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            var chart = this;
+            var datasets = this.data.datasets;
+            var unplanned_list = {{ unplanned_list }};
+            var index_for_unplanned_list = 0
+            datasets.forEach(function (dataset, i) {
+                var index_for_unplanned_list = 0
+                ctx.font = "15px Arial";
+                chart.getDatasetMeta(i).data.forEach(function (p, j) {
+                    var unplanned_hour_string = "";
+                    ctx.fillStyle = "Black";
+                    if (unplanned_list[index_for_unplanned_list] > 0 && i > 0){  // i=0 refers to the dataset of actual line.
+                        ctx.fillStyle = "Red";
+                        unplanned_hour_string = "(" + unplanned_list[index_for_unplanned_list] + ")"
+                    }
+                    index_for_unplanned_list ++;
+                    ctx.fillText(datasets[i].data[j] + unplanned_hour_string , p._model.x, p._model.y + 30);
+                });
+            });
+        }
+    },
+    scales: {
+        xAxes: [{
+            scaleLabel: {
+                display: true,
+                labelString: "Date(s)"
+            }
+        }],
+
+        yAxes: [{
+            type: "linear",
+            position: "left",
+            id: "y-axis-1",
+            scaleLabel: {
+                display: true,
+                labelString: "Hour(s)"
+            }
+        }, 
+            
+        ]
+    }
+};
+var myLineChart = new Chart(ctx, {
+    type: 'line',
+    data: data,
+    options: options
+            
+}); 
+
+</script>
+ 
+</body>
+</html>
+ 
+</script>
+ 
+</body>
+</html>
